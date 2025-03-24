@@ -24,7 +24,7 @@ mkdir -p ~/ros2_ws/src
 cd ~/ros2_ws/src
 
 # Clone this repository
-git clone https://github.com/yourusername/urad_ros2.git
+git clone https://github.com/MDkontroller/uRAD_ROS2.git
 
 # Install dependencies
 cd ~/ros2_ws
@@ -45,10 +45,8 @@ source install/setup.bash
 ros2 run urad urad_pub_no_timer
 
 # Terminal 2 - Start the zero frequency filtering node
-ros2 run urad zero_ff_node
+ros2 run urad subscriber
 
-# Terminal 3 - Start the data visualization
-ros2 run urad visualizer
 ```
 
 ### Using Launch Files
@@ -70,7 +68,6 @@ Radar parameters can be configured in the launch files or by modifying the param
 | `test_sub` | Processes radar data |
 | `urad_pub_no_timer` | Publishes radar data without timer (better for real-time) |
 | `zero_ff_node` | Removes zero-frequency components from radar data |
-| `visualizer` | Visualizes radar data in real-time |
 
 ## Topics
 
@@ -135,7 +132,6 @@ urad/
 │   ├── test_sub.py
 │   ├── urad_pub_no_timer.py
 │   ├── zero_ff_node.py
-│   ├── visualizer.py
 │   └── uRAD_RP_SDK11.py
 ├── launch/
 │   └── radar_system.launch.py

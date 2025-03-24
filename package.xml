@@ -3,8 +3,8 @@
 <package format="3">
   <name>urad</name>
   <version>0.0.1</version>
-  <description>uRAD Radar ROS2 Package. Example nodes for radar data</description>
-  <maintainer email="nis3770@thi.de">lab</maintainer>
+  <description>uRAD Radar ROS2 Package. Example basic integration nodes</description>
+  <maintainer email="nicosarmientom@gmail.com">lab</maintainer>
   <license>MIT</license>
 
   <test_depend>ament_copyright</test_depend>
@@ -14,6 +14,8 @@
 
   <exec_depend>rclpy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
+  <exec_depend>ament_index_python</exec_depend>
 
   <export>
     <build_type>ament_python</build_type>

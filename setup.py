@@ -1,4 +1,6 @@
 from setuptools import setup
+import os
+from glob import glob
 
 package_name = 'urad'
 
@@ -10,11 +12,12 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
     ],
-    install_requires=['setuptools'],
+    install_requires=['setuptools', 'pyyaml'],
     zip_safe=True,
     maintainer='lab',
-    maintainer_email='nis3770@thi.de',
+    maintainer_email='nicosarmientom@gmail.com',
     description='Example nodes for urad radar',
     license='MIT',
     tests_require=['pytest'],
