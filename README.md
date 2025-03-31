@@ -1,6 +1,6 @@
 # uRAD ROS2 Package
 
-A ROS2 package for interfacing with uRAD radar sensors. This package provides nodes for data acquisition, processing, and visualization of radar data.
+A ROS2 package for interfacing with [uRAD radar](https://urad.es/en/). This package provides nodes for data acquisition, processing, and visualization of radar data.
 
 ## Overview
 

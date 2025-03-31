@@ -23,10 +23,13 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-        'publisher = urad.publisher:main', 'subscriber = urad.subscriber:main',
-		'test_pub = urad.test_pub:main', 'test_sub = urad.test_sub:main',
-        'urad_test = urad.test:main', 'zero_ff_node = urad.zero_ff_node:main',
-	'urad_pub_no_timer= urad.test_pub_no_timer:main'
+            'urad_publisher = urad.urad_publisher:main',
+            'urad_subscriber = urad.subscriber:main',
+            'urad_test_publisher = urad.test_pub:main',
+            'urad_test_subscriber = urad.test_sub:main',
+            'urad_zero_ff = urad.zero_ff_node:main',
+            'urad_dummy_publisher = urad.dummy_radar_publisher:main',
+            'urad_publisher_continuous = urad.urad_publisher_continuous:main'
         ],
     },
 )
