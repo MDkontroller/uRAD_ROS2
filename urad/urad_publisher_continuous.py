@@ -63,10 +63,21 @@ class urad_config():
             self.get_logger().error('uRAD_RP_SDK11.loadConfiguration: config unsuccessful')
             self.close_program()
 
+
+
+
     def close_program(self):
-        # switch OFF uRAD
-        return_code = uRAD_RP_SDK11.turnOFF()
-        exit()
+        # First set the shutdown flag to True to ensure the main loop will exit
+        self.should_shutdown = True
+        # Switch OFF uRAD
+        try:
+            uRAD_RP_SDK11.turnOFF()
+        except Exception as e:
+            self.get_logger().error(f'Error turning off radar: {e}')
+        finally:
+            # node will be shutdown in the main function
+            pass
+
 
 class Publisher(Node):
 
