@@ -1,11 +1,9 @@
 import rclpy
 import urad.uRAD_RP_SDK11 as uRAD_RP_SDK11
-from rclpy.node import Node
 from interfaces.msg import CwIq
 from urad_base import UradBaseNode
 
 class UradPublisher(UradBaseNode):
-
 
     def __init__(self):
         super().__init__('urad_publisher')
