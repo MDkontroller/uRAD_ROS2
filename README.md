@@ -5,17 +5,19 @@ A ROS2 package for interfacing with [uRAD radar](https://urad.es/en/). This pack
 ## Overview
 
 This package contains:
-- Publisher and subscriber nodes for raw radar data
-- Signal processing nodes for radar data
-- Visualization tools
-- Configuration utilities
+- Publisher nodes for radar data acquisition (both timer-based and continuous)
+- Subscriber nodes for radar IQ Channels
+- Signal processing nodes (zero frequency filtering)
+- Basic Configuration for CW (Continues Wave) operation mode and parameter handling.
+- Launch file for easy system startup
 
 ## Installation
 
 ### Prerequisites
 - ROS2 (tested on Humble)
 - Python 3.8+
-- uRAD SDK
+- uRAD SDK (included in the package)
+- NumPy
 
 ### Building from Source
 ```bash
@@ -24,11 +26,13 @@ mkdir -p ~/ros2_ws/src
 cd ~/ros2_ws/src
 
 # Clone this repository
-git clone https://github.com/MDkontroller/uRAD_ROS2.git
+git clone https://github.com/MDkontroller/uRAD_ROS2.git mdkontroller-urad_ros2
 
-# Install dependencies
+# Install Python dependencies
+pip install numpy pyyaml
+
+# Navigate back to workspace root
 cd ~/ros2_ws
-rosdep install --from-paths src --ignore-src -r -y
 
 # Build the package
 colcon build --packages-select urad
@@ -37,16 +41,26 @@ colcon build --packages-select urad
 source install/setup.bash
 ```
 
+### Custom Message Interfaces
+This package requires custom message interfaces. Make sure you also have the `interfaces` package cloned and built in your workspace. The interfaces package should define:
+
+- `CwIq.msg`: For raw I/Q data from the radar
+- `CWIQZERO.msg`: For processed I/Q data with DC offset removed
+
+This package should be compiled using C++ and added to the urad package directory.
+
 ## Usage
 
 ### Basic Usage
 ```bash
-# Terminal 1 - Start the radar publisher
-ros2 run urad urad_pub_no_timer
+# Terminal 1 - Start the radar publisher (continuous mode - better for real-time applications)
+ros2 run urad urad_publisher_continuous
 
 # Terminal 2 - Start the zero frequency filtering node
-ros2 run urad subscriber
+ros2 run urad urad_zero_ff
 
+# Terminal 3 - Start the subscriber to process data
+ros2 run urad urad_subscriber
 ```
 
 ### Using Launch Files
@@ -55,19 +69,38 @@ ros2 run urad subscriber
 ros2 launch urad radar_system.launch.py
 ```
 
-### Configuration
-Radar parameters can be configured in the launch files or by modifying the parameters in the node files.
+### Using the Dummy Publisher for Testing
+If you don't have physical radar hardware, you can use the dummy publisher for testing:
+
+```bash
+# Start the dummy radar publisher
+ros2 run urad urad_dummy_publisher
+```
+
+## Configuration
+
+Radar parameters can be configured in multiple ways:
+
+1. **YAML Configuration** - Edit the files in the `config/` directory:
+   - `urad_config.yaml`: General radar configuration
+   - `radar_parameters.yaml`: Parameters structured for ROS2 parameter server
+
+2. **Launch File Parameters** - Override parameters in launch files
+
+3. **Command Line** - Set parameters via command line:
+   ```bash
+   ros2 run urad urad_publisher --ros-args -p radar.mode:=1 -p radar.f0:=125
+   ```
 
 ## Nodes
 
 | Node | Description |
 |------|-------------|
-| `publisher` | Basic publisher example |
-| `subscriber` | Basic subscriber example |
-| `test_pub` | Publishes real radar data with timer |
-| `test_sub` | Processes radar data |
-| `urad_pub_no_timer` | Publishes radar data without timer (better for real-time) |
-| `zero_ff_node` | Removes zero-frequency components from radar data |
+| `urad_publisher` | Basic timer-based publisher for radar data |
+| `urad_publisher_continuous` | Continuous publisher for radar data (better for real-time) |
+| `urad_subscriber` | Processes and logs radar data |
+| `urad_zero_ff` | Removes zero-frequency components from radar data |
+| `urad_dummy_publisher` | Generates synthetic radar data for testing |
 
 ## Topics
 
@@ -78,7 +111,7 @@ Radar parameters can be configured in the launch files or by modifying the param
 
 ## Parameters
 
-### Radar Publisher Node
+### Radar Parameters
 - `radar.mode`: Radar operation mode (default: 1)
 - `radar.f0`: Start frequency in MHz (default: 125)
 - `radar.bw`: Bandwidth in MHz (default: 0)
@@ -86,70 +119,66 @@ Radar parameters can be configured in the launch files or by modifying the param
 - `radar.ntar`: Number of targets (default: 4)
 - `radar.rmax`: Maximum range in m (default: 100)
 
-### Zero Frequency Filter Node
+### Zero Frequency Filter Parameters
 - `max_voltage`: Maximum voltage for ADC conversion (default: 3.3)
 - `adc_intervals`: Number of ADC intervals (default: 4096)
 
-## Features
-
-- Real-time radar data acquisition
-- I/Q signal processing with DC offset removal
-- Visualization of time-domain signals, I/Q constellation, and FFT
-- Configurable parameters through ROS2 parameter system
-- Launch files for easy system startup
+### Dummy Publisher Parameters
+- `publish_rate`: Publication rate in Hz (default: 10.0)
+- `samples`: Number of samples to generate (default: 200)
+- `noise_level`: Noise level for simulation (default: 0.1)
 
 ## Architecture
 
 ```
-┌─────────────────┐     ┌───────────────────────┐     ┌────────────────────┐
-│  Radar Publisher│     │ Zero Frequency Filter  │     │  Radar Visualizer  │
-│                 │     │                        │     │                     │
-│ ┌─────────────┐ │     │ ┌──────────────────┐  │     │ ┌──────────────┐   │
-│ │ Radar Config│ │     │ │ Signal Processing│  │     │ │ Time Domain  │   │
-│ └─────────────┘ │     │ └──────────────────┘  │     │ └──────────────┘   │
-│        │        │     │          │            │     │         │          │
-│ ┌─────────────┐ │     │ ┌──────────────────┐  │     │ ┌──────────────┐   │
-│ │ Raw Data    │─┼─────┼─►   DC Removal     │──┼─────┼─►Constellation │   │
-│ └─────────────┘ │     │ └──────────────────┘  │     │ └──────────────┘   │
-│                 │     │                        │     │         │          │
-└─────────────────┘     └───────────────────────┘     │ ┌──────────────┐   │
-                                                       │ │     FFT      │   │
-                                                       │ └──────────────┘   │
-                                                       │                    │
-                                                       └────────────────────┘
-```
+┌─────────────────┐     ┌───────────────────────┐
+│  Radar Publisher│     │ Zero Frequency Filter │
+│                 │     │                       │   
+│ ┌─────────────┐ │     │ ┌──────────────────┐  │  
+│ │ Radar Config│ │     │ │ Signal Processing│  │ 
+│ └─────────────┘ │     │ └──────────────────┘  │
+│        │        │     │          │            │
+│ ┌─────────────┐ │     │ ┌──────────────────┐  │
+│ │ Raw Data    │─┼─────┼─►   DC Removal     │──|
+│ └─────────────┘ │     │ └──────────────────┘  │     
+│                 │     │                       │ 
+└─────────────────┘     └───────────────────────┘```
 
-## Development
+## Code Structure
 
-### Code Structure
+The package is structured as follows:
+
 ```
-urad/
-├── urad/
-│   ├── __init__.py
-│   ├── publisher.py
-│   ├── subscriber.py
-│   ├── test_pub.py
-│   ├── test_sub.py
-│   ├── urad_pub_no_timer.py
-│   ├── zero_ff_node.py
-│   └── uRAD_RP_SDK11.py
-├── launch/
-│   └── radar_system.launch.py
+mdkontroller-urad_ros2/
+├── README.md
+├── package.xml
+├── setup.cfg
+├── setup.py
 ├── config/
-│   └── radar_params.yaml
+│   ├── radar_parameters.yaml    # ROS2 parameter structure
+│   └── urad_config.yaml         # Direct configuration
+├── launch/
+│   └── radar_system.launch.py   # Launch file for the complete system
 ├── resource/
 │   └── urad
-├── setup.py
-├── setup.cfg
-├── package.xml
-├── LICENSE
-└── README.md
+├── test/
+│   ├── test_copyright.py
+│   ├── test_flake8.py
+│   └── test_pep257.py
+└── urad/
+    ├── __init__.py
+    ├── dummy_radar_publisher.py  # Synthetic data publisher for testing
+    ├── urad_base.py              # Base class for radar nodes
+    ├── urad_publisher.py         # Timer-based publisher
+    ├── urad_publisher_continuous.py  # Continuous publisher (no timer)
+    ├── urad_subscriber.py        # Basic subscriber
+    ├── uRAD_RP_SDK11.py          # uRAD SDK
+    └── zero_ff_node.py           # Zero frequency filter
 ```
 
-### Future Work
-- Add support for multiple radar sensors
-- Implement SLAM algorithms using radar data
+## Future Work
 - Integrate with ROS2 navigation stack
+- develop c++ drivers for Real-Time processing
 - Support for additional radar modes and configurations
 
 ## License
