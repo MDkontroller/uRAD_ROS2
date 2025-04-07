@@ -1,7 +1,7 @@
 import rclpy
 import urad.uRAD_RP_SDK11 as uRAD_RP_SDK11
 from interfaces.msg import CwIq
-from urad_base import UradBaseNode
+from urad.urad_base import UradBaseNode
 
 
 class UradPubStreamer(UradBaseNode):

@@ -1,7 +1,7 @@
 import rclpy
 import urad.uRAD_RP_SDK11 as uRAD_RP_SDK11
 from interfaces.msg import CwIq
-from urad_base import UradBaseNode
+from urad.urad_base import UradBaseNode
 
 class UradPublisher(UradBaseNode):
 
@@ -10,13 +10,14 @@ class UradPublisher(UradBaseNode):
 
         # Create publisher
         self.publisher = self.create_publisher(CwIq, 'cw_iq', 10)
+        self.timer     = 0.1  # 100ms
        
         # Create timer for publishing
-        self.timer = self.create_timer(0.1, self.publish_radar)  # 10Hz
+        self.timer = self.create_timer(self.timer, self.publish_radar_callback)  # 10Hz
         self.i = 0
     
        
-    def publish_radar(self):
+    def publish_radar_callback(self):
             # Check if we should stop
             if self.should_shutdown:
                 return
